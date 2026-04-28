@@ -216,3 +216,13 @@ __marimo__/
 
 # Streamlit
 .streamlit/secrets.toml
+
+# Models
+models/
+
+# Input/Output
+input/*
+output/*
+!input/.gitkeep
+!output/.gitkeep
+gfpgan/

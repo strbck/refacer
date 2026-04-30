@@ -167,6 +167,6 @@ It is not intended for any use that obscures identity for deceptive, harmful, or
 
 [AGPL-3.0](LICENSE)
 
-Refacer is free and open source software. The AGPL license ensures that any forks or deployments — including hosted versions — must also remain open source.
+Refacer is free and open source software. The AGPL license ensures that any forks or deployments — including hosted versions — must also remain open source. 
 
 -----

@@ -72,7 +72,7 @@ Download and install from [exiftool.org](https://exiftool.org). Add to your syst
 ### Install Refacer
 
 ```bash
-git clone https://github.com/strbckr/refacer.git
+git clone https://github.com/strbck/refacer.git
 cd refacer
 python -m venv venv
 source venv/bin/activate  # Windows: venv\Scripts\activate

@@ -8,7 +8,7 @@
 
 Refacer is a locally-run, fully offline desktop tool that replaces detected faces in photos with AI-generated alternatives and strips all identifying metadata. No cloud. No API calls. Your images never leave your machine.
 
-> ⚠️ **This project is in early development.** The pipeline is not yet complete and the tool is not ready for production use.
+> ⚠️ **This project is in early development.** The pipeline is not yet complete and the tool is not ready for production use. 
 
 -----
 

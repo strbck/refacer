@@ -1,0 +1,43 @@
+# Auto-detect text files and normalize them to LF in the repo.
+# Working tree keeps the platform's native line endings (CRLF on Windows, LF elsewhere).
+* text=auto
+
+# Explicit text — be safe even if auto-detection misses these.
+*.py     text
+*.md     text
+*.txt    text
+*.toml   text
+*.cfg    text
+*.ini    text
+*.json   text
+*.yaml   text
+*.yml    text
+
+# Shell scripts must keep LF even when checked out on Windows.
+*.sh     text eol=lf
+
+# Common binary file types — never convert line endings, never diff.
+*.png    binary
+*.jpg    binary
+*.jpeg   binary
+*.gif    binary
+*.webp   binary
+*.tiff   binary
+*.bmp    binary
+*.ico    binary
+*.pdf    binary
+
+# Model weights and ML artifacts.
+*.onnx   binary
+*.pth    binary
+*.pt     binary
+*.bin    binary
+*.safetensors binary
+*.h5     binary
+*.pkl    binary
+
+# Archives.
+*.zip    binary
+*.tar    binary
+*.gz     binary
+*.7z     binary

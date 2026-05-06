@@ -1,14 +1,12 @@
 # Refacer
 
-![Status: Early Development](https://img.shields.io/badge/status-early%20development-orange)
+![Version: v0.1.0](https://img.shields.io/badge/version-v0.1.0-green)
 ![License: AGPL-3.0](https://img.shields.io/badge/license-AGPL--3.0-blue)
 ![Platform: macOS | Linux | Windows](https://img.shields.io/badge/platform-macOS%20%7C%20Linux%20%7C%20Windows-lightgrey)
 
 **Batch face anonymization and metadata scrubbing for photojournalists and activist photographers.**
 
 Refacer is a locally-run, fully offline desktop tool that replaces detected faces in photos with AI-generated alternatives and strips all identifying metadata. No cloud. No API calls. Your images never leave your machine.
-
-> ⚠️ **This project is in early development.** The pipeline is not yet complete and the tool is not ready for production use.
 
 -----
 
@@ -47,8 +45,6 @@ Each face receives a randomly generated embedding with no seeding or shared stat
 
 ## Installation
 
-> ⚠️ Installation instructions will be finalized at v0.1.0. The steps below reflect the intended setup flow.
-
 ### Prerequisites
 
 - Python 3.10+
@@ -77,8 +73,10 @@ cd refacer
 python -m venv venv
 source venv/bin/activate  # Windows: venv\Scripts\activate
 pip install -r requirements.txt
-python scripts/download_models.py  # downloads inswapper and GFPGAN model weights (~500MB)
+python scripts/download_models.py  # downloads GFPGANv1.4 weights automatically
 ```
+
+`inswapper_128.onnx` must be downloaded manually from [Google Drive](https://drive.google.com/file/d/1krOLgjW2tAPaqV-Bw4YALz0xT5zlb5HF/view) and placed in `models/` inside the repo.
 
 -----
 
@@ -136,13 +134,13 @@ python -m refacer --input /path/to/photos --output /path/to/output
 
 - Very small faces in dense crowd shots may be missed or flagged as low-confidence
 - Extreme profile angles and heavily occluded faces (e.g. surgical masks + sunglasses) may not be detected reliably
-- Processing time varies by hardware — benchmarks will be published at v0.1.0
+- Processing time varies by hardware; no benchmarks published yet
 
 -----
 
 ## Roadmap
 
-- [ ] v0.1.0 — core pipeline (detection, face replacement, enhancement, metadata scrub, Gradio UI)
+- [x] v0.1.0 — core pipeline (detection, face replacement, enhancement, metadata scrub, Gradio UI)
 - [ ] v0.2.0 — confidence threshold UI controls, manual review queue for low-confidence detections
 - [ ] v0.3.0 — higher-realism enhancement options
 - [ ] v1.0.0 — packaged installers for macOS, Linux, and Windows
@@ -151,7 +149,7 @@ python -m refacer --input /path/to/photos --output /path/to/output
 
 ## Contributing
 
-This project is in early development and not yet ready for contributions. Once the core pipeline is stable at v0.1.0, contributions will be welcome. Watch this repo for updates.
+The core pipeline is stable at v0.1.0 and contributions are welcome. Please open an issue before starting significant work so we can discuss approach and avoid duplication.
 
 -----
 

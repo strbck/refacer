@@ -41,7 +41,7 @@ def _build_parser() -> argparse.ArgumentParser:
         default=None,
         help=(
             "Directory containing model weight files "
-            "(default: <repo_root>/models)."
+            "(default: models/ inside the refacer package)."
         ),
     )
     parser.add_argument(
@@ -56,7 +56,7 @@ def _build_parser() -> argparse.ArgumentParser:
 def _resolve_models_dir(cli_value: str | None) -> str:
     if cli_value:
         return cli_value
-    return os.path.join(os.getcwd(), "refacer", "models")
+    return os.path.join(os.path.dirname(os.path.abspath(__file__)), "models")
 
 
 def main(argv=None):

@@ -12,6 +12,7 @@ import logging
 
 import cv2
 import numpy as np
+from insightface.utils import face_align
 
 logger = logging.getLogger(__name__)
 
@@ -44,8 +45,6 @@ def swap_face(swapper, image: np.ndarray, face) -> np.ndarray:
     result : np.ndarray
         Full image (same shape as *image*) with this face replaced.
     """
-    from insightface.utils import face_align
-
     # 1. Random identity
     latent = generate_random_latent(swapper)
 

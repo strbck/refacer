@@ -26,35 +26,6 @@ def generate_random_latent(swapper) -> np.ndarray:
     return latent
 
 
-def run_inference(swapper, image: np.ndarray, latent: np.ndarray) -> np.ndarray:
-    """
-    Crop, align, and run the swapper model on a single face region.
-
-    Parameters
-    ----------
-    swapper:
-        Loaded inswapper model from ModelBundle.
-    image:
-        Full BGR image (uint8).
-    latent:
-        Output of generate_random_latent().
-
-    Returns
-    -------
-    bgr_fake : np.ndarray
-        Swapped face crop, BGR uint8, aligned space.
-    M : np.ndarray
-        Affine transform matrix used for the crop (needed for warp-back).
-    """
-    from insightface.utils import face_align
-
-    # face_align.norm_crop2 requires kps on the face object — pass the full face
-    # so the caller must extract kps first; here we accept them directly.
-    raise NotImplementedError(
-        "run_inference expects a face object — call swap_face() instead."
-    )
-
-
 def swap_face(swapper, image: np.ndarray, face) -> np.ndarray:
     """
     Swap a single detected *face* in *image* and composite the result back.

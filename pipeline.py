@@ -13,8 +13,8 @@ Resilience contract
   output unchanged and the failure is logged.
 - If GFPGAN enhancement fails, the un-enhanced (but swapped) image is
   saved and the failure is logged.
-- If metadata scrubbing fails (but exiftool is present), the image is
-  still saved and the failure is logged prominently.
+- If metadata scrub or verification fails (and exiftool is present),
+  the output is DISCARDED so an unscrubbed image is never published.
 - Processing continues to the next image in all cases.
 
 Usage
@@ -137,6 +137,67 @@ def _collect_images(input_dir: str) -> List[str]:
     )
 
 
+def _scrub_verify_finalize(
+    temp_path: str,
+    final_path: str,
+    filename: str,
+) -> tuple[bool, bool]:
+    """
+    Scrub metadata from *temp_path*, verify the result is clean, and
+    atomically promote it to *final_path*.
+
+    If exiftool is not available the file is moved into place without
+    scrubbing or verification (consistent with the resilience contract:
+    the pipeline still produces output, just without the metadata
+    guarantee — a prominent warning is logged at startup).
+
+    If exiftool is available and either scrubbing or verification fails,
+    *temp_path* is deleted and ``(False, False)`` is returned. We refuse
+    to publish an output image whose metadata could not be guaranteed.
+
+    Returns
+    -------
+    (saved, scrubbed) : tuple[bool, bool]
+        saved    — True if the file ended up at *final_path*.
+        scrubbed — True if metadata was both scrubbed and verified clean.
+                   Always False when exiftool is unavailable.
+    """
+    if metadata.is_available():
+        scrubbed = metadata.scrub(temp_path)
+        verified = scrubbed and metadata.verify_scrubbed(temp_path)
+        if not verified:
+            logger.error(
+                "%s — metadata scrub/verify FAILED. "
+                "Output discarded to prevent leaking identifying metadata.",
+                filename,
+            )
+            try:
+                os.remove(temp_path)
+            except OSError as exc:
+                logger.warning(
+                    "%s — could not clean up temp file %s: %s",
+                    filename, temp_path, exc,
+                )
+            return False, False
+        scrubbed_ok = True
+    else:
+        scrubbed_ok = False
+
+    try:
+        os.replace(temp_path, final_path)
+    except OSError as exc:
+        logger.error(
+            "%s — could not move output into place: %s", filename, exc
+        )
+        try:
+            os.remove(temp_path)
+        except OSError:
+            pass
+        return False, scrubbed_ok
+
+    return True, scrubbed_ok
+
+
 def _process_image(
     filename: str,
     input_dir: str,
@@ -166,13 +227,26 @@ def _process_image(
     result.faces_detected = len(faces)
     logger.info("%s — %d face(s) detected", filename, len(faces))
 
-    # No faces: copy original to output unchanged
+    # No faces: copy original to output unchanged (still scrub + verify)
     if not faces:
         logger.info("%s — no faces detected, copying original to output.", filename)
-        shutil.copy2(input_path, output_path)
+        temp_path = output_path + ".tmp"
+        try:
+            shutil.copy2(input_path, temp_path)
+        except OSError as exc:
+            result.error = f"Could not copy original to temp: {exc}"
+            logger.error("Failed to copy %s to temp: %s", filename, exc)
+            return result
+
+        saved, scrubbed = _scrub_verify_finalize(temp_path, output_path, filename)
+        if not saved:
+            result.error = (
+                "Metadata scrub/verify failed — output discarded to "
+                "prevent leaking identifying metadata."
+            )
+            return result
         result.success = True
-        # Still scrub metadata on the copy
-        result.metadata_scrubbed = metadata.scrub(output_path)
+        result.metadata_scrubbed = scrubbed
         return result
 
     # --- Swap faces (resilient per-face) ---
@@ -201,22 +275,24 @@ def _process_image(
         result.enhancement_ok = False
         logger.warning("%s — GFPGAN enhancement failed, saving without: %s", filename, exc)
 
-    # --- Save ---
-    if not cv2.imwrite(output_path, current):
-        result.error = f"cv2.imwrite failed — could not write to {output_path}"
+    # --- Write to temp, scrub + verify, then atomically promote ---
+    temp_path = output_path + ".tmp"
+    if not cv2.imwrite(temp_path, current):
+        result.error = f"cv2.imwrite failed — could not write to {temp_path}"
         logger.error("Failed to write output for %s", filename)
         return result
 
-    result.success = True
-    logger.info("%s — saved to output/", filename)
-
-    # --- Metadata scrub ---
-    result.metadata_scrubbed = metadata.scrub(output_path)
-    if metadata.is_available() and not result.metadata_scrubbed:
-        logger.warning(
-            "%s — metadata scrub FAILED. Output image may contain identifying metadata.",
-            filename,
+    saved, scrubbed = _scrub_verify_finalize(temp_path, output_path, filename)
+    if not saved:
+        result.error = (
+            "Metadata scrub/verify failed — output discarded to "
+            "prevent leaking identifying metadata."
         )
+        return result
+
+    result.success = True
+    result.metadata_scrubbed = scrubbed
+    logger.info("%s — saved to output/", filename)
 
     return result
 

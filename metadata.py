@@ -13,11 +13,22 @@ Installation:
   Windows: https://exiftool.org  (add to system PATH)
 """
 
+import json
 import logging
 import shutil
 import subprocess
 
 logger = logging.getLogger(__name__)
+
+# Tag groups that must be empty after a successful scrub. Anything reported
+# here is considered identifying metadata for the purposes of verification.
+_IDENTIFYING_GROUPS = (
+    "EXIF",
+    "IPTC",
+    "XMP",
+    "GPS",
+    "MakerNotes",
+)
 
 # Checked once at import time so the warning surfaces early.
 _EXIFTOOL_AVAILABLE: bool = shutil.which("exiftool") is not None
@@ -99,4 +110,98 @@ def scrub(image_path: str) -> bool:
         return False
     except Exception as exc:  # noqa: BLE001
         logger.error("Unexpected error running exiftool on %s: %s", image_path, exc)
+        return False
+
+
+def verify_scrubbed(image_path: str) -> bool:
+    """
+    Verify that *image_path* contains no identifying metadata.
+
+    Runs exiftool in read-only mode and inspects the resulting tag groups.
+    Any tag from EXIF, IPTC, XMP, GPS, or MakerNotes is treated as
+    identifying metadata and causes verification to fail.
+
+    Parameters
+    ----------
+    image_path : str
+        Path to the image file to inspect.
+
+    Returns
+    -------
+    bool
+        True if no identifying metadata is present, OR if exiftool is not
+        available on PATH (verification is skipped, not failed, so the
+        pipeline can still operate without exiftool installed).
+        False if exiftool found identifying tags, errored out, or its
+        output could not be parsed.
+
+    Notes
+    -----
+    The ``File`` and ``Composite`` groups are deliberately ignored — File
+    is metadata about the file itself (size, MIME type, image dimensions)
+    and Composite tags are derived from other tags, so they will be empty
+    once the underlying identifying tags are gone.
+    """
+    if not _EXIFTOOL_AVAILABLE:
+        logger.debug("Skipping metadata verify (exiftool not available): %s", image_path)
+        return True
+
+    try:
+        result = subprocess.run(
+            [
+                "exiftool",
+                "-G",          # prefix tag names with group, e.g. "EXIF:Make"
+                "-j",          # JSON output
+                "-a",          # allow duplicate tags
+                "-u",          # include unknown tags
+                image_path,
+            ],
+            capture_output=True,
+            text=True,
+            timeout=30,
+        )
+
+        if result.returncode != 0:
+            logger.error(
+                "exiftool verify failed on %s (exit %d): %s",
+                image_path,
+                result.returncode,
+                result.stderr.strip(),
+            )
+            return False
+
+        try:
+            data = json.loads(result.stdout)
+        except json.JSONDecodeError as exc:
+            logger.error(
+                "Could not parse exiftool output for %s: %s", image_path, exc
+            )
+            return False
+
+        if not data:
+            return True
+
+        tags = data[0]
+        leaked = [
+            key for key in tags
+            if ":" in key and key.split(":", 1)[0] in _IDENTIFYING_GROUPS
+        ]
+
+        if leaked:
+            logger.warning(
+                "%s — verification found %d identifying tag(s) still present: %s",
+                image_path,
+                len(leaked),
+                ", ".join(leaked[:5]) + ("…" if len(leaked) > 5 else ""),
+            )
+            return False
+
+        logger.debug("Metadata verified clean: %s", image_path)
+        return True
+
+    except subprocess.TimeoutExpired:
+        logger.error("exiftool verify timed out on %s", image_path)
+        return False
+    except Exception as exc:  # noqa: BLE001
+        logger.error("Unexpected error verifying %s: %s", image_path, exc)
         return False

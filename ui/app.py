@@ -12,14 +12,16 @@ All processing is fully offline — no network calls are made at runtime.
 
 import logging
 import os
+import shutil
 import sys
 
-# Ensure the repo root is on the path so `import refacer` works when
-# this script is invoked directly (python ui/app.py from repo root).
-_HERE = os.path.dirname(os.path.abspath(__file__))
-_REPO_ROOT = os.path.dirname(os.path.dirname(_HERE))
-if _REPO_ROOT not in sys.path:
-    sys.path.insert(0, _REPO_ROOT)
+# ui/ is one level below the repo root; the package lives at the repo root,
+# so its parent must be on sys.path for `import refacer` to resolve.
+_HERE = os.path.dirname(os.path.abspath(__file__))       # .../refacer/ui
+_PACKAGE_DIR = os.path.dirname(_HERE)                    # .../refacer
+_PARENT_DIR = os.path.dirname(_PACKAGE_DIR)
+if _PARENT_DIR not in sys.path:
+    sys.path.insert(0, _PARENT_DIR)
 
 import gradio as gr
 
@@ -37,9 +39,9 @@ logger = logging.getLogger(__name__)
 # ---------------------------------------------------------------------------
 # Paths
 # ---------------------------------------------------------------------------
-MODELS_DIR = os.path.join(_REPO_ROOT, "refacer", "models")
-INPUT_DIR = os.path.join(_REPO_ROOT, "refacer", "input")
-OUTPUT_DIR = os.path.join(_REPO_ROOT, "refacer", "output")
+MODELS_DIR = os.path.join(_PACKAGE_DIR, "models")
+INPUT_DIR = os.path.join(_PACKAGE_DIR, "input")
+OUTPUT_DIR = os.path.join(_PACKAGE_DIR, "output")
 
 os.makedirs(INPUT_DIR, exist_ok=True)
 os.makedirs(OUTPUT_DIR, exist_ok=True)
@@ -98,7 +100,6 @@ def process(input_files, progress=gr.Progress(track_tqdm=True)):
     for upload in input_files:
         src = upload if isinstance(upload, str) else upload.name
         dest = os.path.join(INPUT_DIR, os.path.basename(src))
-        import shutil
         shutil.copy2(src, dest)
 
     # Run pipeline

@@ -230,7 +230,7 @@ def _process_image(
     # No faces: copy original to output unchanged (still scrub + verify)
     if not faces:
         logger.info("%s — no faces detected, copying original to output.", filename)
-        temp_path = output_path + ".tmp"
+        temp_path = "{}.tmp{}".format(*os.path.splitext(output_path))
         try:
             shutil.copy2(input_path, temp_path)
         except OSError as exc:
@@ -276,7 +276,7 @@ def _process_image(
         logger.warning("%s — GFPGAN enhancement failed, saving without: %s", filename, exc)
 
     # --- Write to temp, scrub + verify, then atomically promote ---
-    temp_path = output_path + ".tmp"
+    temp_path = "{}.tmp{}".format(*os.path.splitext(output_path))
     if not cv2.imwrite(temp_path, current):
         result.error = f"cv2.imwrite failed — could not write to {temp_path}"
         logger.error("Failed to write output for %s", filename)

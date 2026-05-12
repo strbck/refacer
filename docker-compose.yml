@@ -7,6 +7,6 @@ services:
     environment:
       - REFACER_DOCKER=1
     volumes:
-      - ./models:/app/models   # must contain inswapper_128.onnx
-      - ./input:/app/input
-      - ./output:/app/output
+      - ./models:/refacer/models   # must contain inswapper_128.onnx
+      - ./input:/refacer/input
+      - ./output:/refacer/output

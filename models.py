@@ -75,7 +75,9 @@ def load_models(models_dir: str) -> ModelBundle:
     try:
         from gfpgan import GFPGANer
     except ImportError as e:
-        raise ImportError("gfpgan is not installed. Run: pip install gfpgan") from e
+        raise ImportError(
+            f"gfpgan failed to import ({e}). Run: pip install gfpgan"
+        ) from e
 
     enhancer = GFPGANer(
         model_path=gfpgan_path,

@@ -24,9 +24,9 @@ WORKDIR /refacer
 COPY requirements.txt .
 RUN pip install --no-cache-dir \
         --extra-index-url https://download.pytorch.org/whl/cpu \
-        torch numpy
+        torch torchvision numpy
 RUN pip install --no-cache-dir --no-build-isolation basicsr
-RUN pip install --no-cache-dir \
+RUN pip install --no-cache-dir --no-build-isolation \
         --extra-index-url https://download.pytorch.org/whl/cpu \
         -r requirements.txt
 

@@ -12,11 +12,14 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 WORKDIR /app
 
 # Install Python dependencies.
-# torch is CPU-only — the default PyPI wheel includes CUDA and is ~800 MB larger.
+# torch must be pinned to the CPU-only wheel before other packages are resolved;
+# otherwise pip can pull the default CUDA wheel from PyPI when satisfying the
+# torch transitive dependency of gfpgan/basicsr, which drags in nvidia_cublas etc.
 COPY requirements.txt .
 RUN pip install --no-cache-dir \
-        --extra-index-url https://download.pytorch.org/whl/cpu \
-        -r requirements.txt
+        --index-url https://download.pytorch.org/whl/cpu \
+        torch torchvision
+RUN pip install --no-cache-dir -r requirements.txt
 
 # Copy source.
 COPY . .

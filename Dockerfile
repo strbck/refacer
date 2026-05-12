@@ -1,9 +1,12 @@
 FROM python:3.11-slim
 
 # System dependencies:
-#   libgl1 + libglib2.0-0  — required by opencv-python-headless at runtime
-#   libimage-exiftool-perl — metadata scrubbing (exiftool)
+#   build-essential + cmake  — compile insightface C++ extensions (no pre-built wheel on slim)
+#   libgl1 + libglib2.0-0   — required by opencv-python-headless at runtime
+#   libimage-exiftool-perl  — metadata scrubbing (exiftool)
 RUN apt-get update && apt-get install -y --no-install-recommends \
+        build-essential \
+        cmake \
         libgl1 \
         libglib2.0-0 \
         libimage-exiftool-perl \

@@ -229,3 +229,7 @@ output/*
 !input/.gitkeep
 !output/.gitkeep
 gfpgan/
+
+# MacOS
+.DS_Store
+**/.DS_Store

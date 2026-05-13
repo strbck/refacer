@@ -31,6 +31,7 @@ Usage
     print(stats)
 """
 
+import gc
 import logging
 import os
 import shutil
@@ -46,6 +47,10 @@ from refacer.swap import swap_face
 logger = logging.getLogger(__name__)
 
 SUPPORTED_EXTENSIONS = (".jpg", ".jpeg", ".png", ".tiff", ".webp")
+
+# Maximum pixel dimension (longest edge) before the image is downscaled.
+# Override with the REFACER_MAX_DIMENSION environment variable.
+MAX_DIMENSION = int(os.environ.get("REFACER_MAX_DIMENSION", "4096"))
 
 
 # ---------------------------------------------------------------------------
@@ -216,6 +221,17 @@ def _process_image(
         logger.error("Could not read %s, skipping.", filename)
         return result
 
+    # --- Downscale if needed ---
+    h, w = img.shape[:2]
+    if max(h, w) > MAX_DIMENSION:
+        scale = MAX_DIMENSION / max(h, w)
+        new_w, new_h = int(w * scale), int(h * scale)
+        logger.warning(
+            "%s — %dx%d exceeds MAX_DIMENSION=%d, downscaling to %dx%d",
+            filename, w, h, MAX_DIMENSION, new_w, new_h,
+        )
+        img = cv2.resize(img, (new_w, new_h), interpolation=cv2.INTER_AREA)
+
     # --- Detect faces ---
     try:
         faces = models.app.get(img)
@@ -333,6 +349,7 @@ def run(
     for filename in filenames:
         logger.info("── Processing: %s", filename)
         image_result = _process_image(filename, input_dir, output_dir, models)
+        gc.collect()
         stats.image_results.append(image_result)
 
         stats.total_faces += image_result.faces_detected

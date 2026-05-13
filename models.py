@@ -59,7 +59,7 @@ def load_models(models_dir: str) -> ModelBundle:
         raise ImportError("insightface is not installed. Run: pip install insightface") from e
 
     app = FaceAnalysis(name="buffalo_l", providers=["CPUExecutionProvider"])
-    app.prepare(ctx_id=0, det_size=(1024, 1024))
+    app.prepare(ctx_id=0, det_size=(640, 640))
     logger.info("FaceAnalysis ready.")
 
     logger.info("Loading inswapper_128…")

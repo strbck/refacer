@@ -2,7 +2,7 @@
 
 ![Version: v0.1.0](https://img.shields.io/badge/version-v0.1.0-green)
 ![License: AGPL-3.0](https://img.shields.io/badge/license-AGPL--3.0-blue)
-![Platform: macOS | Linux | Windows](https://img.shields.io/badge/platform-macOS%20%7C%20Linux%20%7C%20Windows-lightgrey)
+![Platform: macOS 13+ | Linux | Windows 10/11 WSL2](https://img.shields.io/badge/platform-macOS%2013%2B%20%7C%20Linux%20%7C%20Windows%2010%2F11%20WSL2-lightgrey)
 
 **Batch face anonymization and metadata scrubbing for photojournalists and activist photographers.**
 
@@ -49,7 +49,7 @@ Docker is the easiest way to run Refacer — no Python environment or system dep
 
 ### Prerequisites
 
-- [Docker Desktop](https://www.docker.com/products/docker-desktop/) (macOS, Linux, Windows)
+- [Docker Desktop](https://www.docker.com/products/docker-desktop/) — macOS 13+, Windows 10/11 64-bit with WSL2 enabled, or a supported Linux distro
 - `inswapper_128.onnx` downloaded manually from [Google Drive](https://drive.google.com/file/d/1krOLgjW2tAPaqV-Bw4YALz0xT5zlb5HF/view) and placed in a `models/` directory inside the repo
 
 ### Run
@@ -131,11 +131,14 @@ python -m refacer --input /path/to/photos --output /path/to/output
 
 ## Platform Support
 
-|Platform|Supported                   |
-|--------|----------------------------|
-|macOS   |✅                           |
-|Linux   |✅                           |
-|Windows |⚠️ Beta — testing in progress|
+Refacer currently requires Docker. Supported environments are those that can run Docker Engine or Docker Desktop:
+
+|Platform              |Supported                              |
+|----------------------|---------------------------------------|
+|macOS 13+             |✅                                      |
+|Linux (supported distros)|✅                                  |
+|Windows 10/11 64-bit  |✅ Requires WSL2                        |
+|Older / unsupported OS|❌ Not supported at this time           |
 
 -----
 

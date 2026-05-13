@@ -33,8 +33,11 @@ RUN pip install --no-cache-dir --no-build-isolation \
 # Copy source.
 COPY . .
 
-# Pre-download GFPGAN weights into the image so users don't wait on first run.
-RUN python scripts/download_models.py
+# Pre-download GFPGAN weights into /refacer/weights/ — a path that is NOT
+# volume-mounted at runtime.  The models/ volume only needs to contain the
+# user-supplied inswapper_128.onnx; mounting it must not shadow these weights.
+RUN python scripts/download_models.py --dest /refacer/weights
+ENV GFPGAN_MODEL_PATH=/refacer/weights/GFPGANv1.4.pth
 
 # Pre-download InsightFace buffalo_l detection weights into the image.
 # This avoids a ~300 MB download on first container start.

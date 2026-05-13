@@ -38,7 +38,9 @@ def load_models(models_dir: str) -> ModelBundle:
         If a required library is not installed.
     """
     inswapper_path = os.path.join(models_dir, INSWAPPER_FILENAME)
-    gfpgan_path = os.path.join(models_dir, GFPGAN_FILENAME)
+    # Allow the GFPGAN weight to live outside models_dir (e.g. baked into a
+    # Docker image layer that sits beneath a runtime volume mount).
+    gfpgan_path = os.environ.get("GFPGAN_MODEL_PATH") or os.path.join(models_dir, GFPGAN_FILENAME)
 
     # Validate weights exist before importing heavy libraries
     for path, name in [

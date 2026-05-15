@@ -36,7 +36,7 @@ import logging
 import os
 import shutil
 from dataclasses import dataclass, field
-from typing import List
+from typing import Generator, List
 
 import cv2
 
@@ -351,48 +351,31 @@ def run(
     input_dir: str,
     output_dir: str,
     models: ModelBundle,
-) -> RunStats:
+) -> "Generator[ImageResult, None, None]":
     """
     Process all supported images in *input_dir*, writing results to *output_dir*.
+
+    Yields one ImageResult per image as it finishes. Callers accumulate the
+    yielded results and pass them to RunStats.from_results() to get aggregates.
 
     Parameters
     ----------
     input_dir  : str  — path to folder containing source images
     output_dir : str  — path to folder for anonymised output images
     models     : ModelBundle — pre-loaded models from refacer.models.load_models()
-
-    Returns
-    -------
-    RunStats with per-image results and aggregate counts.
     """
     os.makedirs(output_dir, exist_ok=True)
 
     filenames = _collect_images(input_dir)
     if not filenames:
         logger.warning("No supported images found in %s", input_dir)
-        return RunStats()
+        return
 
     logger.info("Found %d image(s) to process in %s", len(filenames), input_dir)
-
-    stats = RunStats(total=len(filenames))
 
     for filename in filenames:
         logger.info("── Processing: %s", filename)
         image_result = _process_image(filename, input_dir, output_dir, models)
         gc.collect()
-        stats.image_results.append(image_result)
-
-        stats.total_faces += image_result.faces_detected
-        stats.faces_swapped += image_result.faces_swapped
-        stats.faces_failed += image_result.faces_failed
-
-        if not image_result.success:
-            stats.failed += 1
-        elif image_result.faces_detected == 0:
-            stats.skipped += 1
-        else:
-            stats.saved += 1
-
         logger.info(image_result.summary())
-
-    return stats
+        yield image_result

@@ -100,3 +100,66 @@ class TestCountImages:
         (tmp_path / "readme.txt").touch()
         (tmp_path / "data.csv").touch()
         assert count_images(str(tmp_path)) == 0
+
+
+class TestRunGenerator:
+    def _fake_result(self, filename, success=True, faces_detected=1):
+        return ImageResult(
+            filename=filename,
+            success=success,
+            faces_detected=faces_detected,
+            face_results=[FaceResult(0, True)] if faces_detected else [],
+        )
+
+    def test_run_yields_image_result_per_image(self, tmp_path):
+        input_dir = tmp_path / "in"
+        input_dir.mkdir()
+        (input_dir / "a.jpg").touch()
+        (input_dir / "b.jpg").touch()
+
+        r1 = self._fake_result("a.jpg")
+        r2 = self._fake_result("b.jpg")
+
+        with patch("refacer.pipeline._process_image", side_effect=[r1, r2]):
+            results = list(run(str(input_dir), str(tmp_path / "out"), MagicMock()))
+
+        assert results == [r1, r2]
+
+    def test_run_yields_in_sorted_order(self, tmp_path):
+        input_dir = tmp_path / "in"
+        input_dir.mkdir()
+        for name in ["c.jpg", "a.jpg", "b.jpg"]:
+            (input_dir / name).touch()
+
+        fake = [self._fake_result(n) for n in ["a.jpg", "b.jpg", "c.jpg"]]
+
+        with patch("refacer.pipeline._process_image", side_effect=fake):
+            results = list(run(str(input_dir), str(tmp_path / "out"), MagicMock()))
+
+        assert [r.filename for r in results] == ["a.jpg", "b.jpg", "c.jpg"]
+
+    def test_run_empty_directory_yields_nothing(self, tmp_path):
+        input_dir = tmp_path / "in"
+        input_dir.mkdir()
+
+        results = list(run(str(input_dir), str(tmp_path / "out"), MagicMock()))
+
+        assert results == []
+
+    def test_run_creates_output_dir(self, tmp_path):
+        input_dir = tmp_path / "in"
+        input_dir.mkdir()
+        output_dir = tmp_path / "out"  # does not exist yet
+
+        list(run(str(input_dir), str(output_dir), MagicMock()))
+
+        assert output_dir.exists()
+
+    def test_run_is_a_generator(self, tmp_path):
+        import types
+        input_dir = tmp_path / "in"
+        input_dir.mkdir()
+
+        gen = run(str(input_dir), str(tmp_path / "out"), MagicMock())
+
+        assert isinstance(gen, types.GeneratorType)

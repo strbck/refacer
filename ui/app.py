@@ -90,6 +90,8 @@ def _clear_and_copy(input_files) -> None:
     for upload in input_files:
         src = upload if isinstance(upload, str) else upload.name
         dest = os.path.join(INPUT_DIR, os.path.basename(src))
+        if os.path.exists(dest):
+            logger.warning("Duplicate basename %s — earlier file overwritten", os.path.basename(src))
         shutil.copy2(src, dest)
 
 
@@ -140,8 +142,10 @@ def open_output_folder():
         subprocess.run(["open", OUTPUT_DIR], check=False)
     elif sys.platform.startswith("linux"):
         subprocess.run(["xdg-open", OUTPUT_DIR], check=False)
-    else:
+    elif sys.platform == "win32":
         os.startfile(OUTPUT_DIR)
+    else:
+        logger.warning("open_output_folder: unsupported platform %s", sys.platform)
 
 
 # ---------------------------------------------------------------------------

@@ -23,11 +23,14 @@ Usage
     from refacer import pipeline
 
     models = load_models("/path/to/models")
-    stats = pipeline.run(
+    results = []
+    for img_result in pipeline.run(
         input_dir="/path/to/input",
         output_dir="/path/to/output",
         models=models,
-    )
+    ):
+        results.append(img_result)
+    stats = pipeline.RunStats.from_results(total=len(results), results=results)
     print(stats)
 """
 

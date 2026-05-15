@@ -129,6 +129,31 @@ class RunStats:
         ]
         return "\n".join(lines)
 
+    @classmethod
+    def from_results(cls, total: int, results: "List[ImageResult]") -> "RunStats":
+        """Build RunStats from a list of ImageResult objects.
+
+        Args:
+            total: The total number of images processed (may differ from len(results)
+                   if some were skipped before processing).
+            results: List of ImageResult objects from the pipeline.
+
+        Returns:
+            RunStats with all aggregate counters calculated from results.
+        """
+        stats = cls(total=total, image_results=list(results))
+        for r in results:
+            stats.total_faces += r.faces_detected
+            stats.faces_swapped += r.faces_swapped
+            stats.faces_failed += r.faces_failed
+            if not r.success:
+                stats.failed += 1
+            elif r.faces_detected == 0:
+                stats.skipped += 1
+            else:
+                stats.saved += 1
+        return stats
+
 
 # ---------------------------------------------------------------------------
 # Core helpers

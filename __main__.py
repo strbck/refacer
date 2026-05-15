@@ -85,12 +85,17 @@ def main(argv=None):
 
     # --- Run pipeline ---
     from refacer import pipeline
+    from refacer.pipeline import RunStats
 
-    stats = pipeline.run(
+    results = []
+    for img_result in pipeline.run(
         input_dir=args.input,
         output_dir=args.output,
         models=models,
-    )
+    ):
+        results.append(img_result)
+
+    stats = RunStats.from_results(total=len(results), results=results)
 
     print(stats)
 

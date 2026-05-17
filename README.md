@@ -1,7 +1,7 @@
 # Refacer
 
 ![Version: v0.1.0](https://img.shields.io/badge/version-v0.1.0-green)
-![License: AGPL-3.0](https://img.shields.io/badge/license-AGPL--3.0-blue)
+![License: PolyForm-NC-1.0.0](https://img.shields.io/badge/license-PolyForm--NC--1.0.0-blue)
 ![Platform: macOS 13+ | Linux | Windows 10/11 WSL2](https://img.shields.io/badge/platform-macOS%2013%2B%20%7C%20Linux%20%7C%20Windows%2010%2F11%20WSL2-lightgrey)
 
 **Batch face anonymization and metadata scrubbing for photojournalists and activist photographers.**
@@ -187,6 +187,20 @@ The core pipeline is stable at v0.1.0 and contributions are welcome. Please open
 
 -----
 
+## Third-Party Model Notices
+
+Refacer depends on pre-trained model weights that are not bundled in this repository but are required to run the software. These weights carry their own license restrictions:
+
+| Model | Source | License |
+|---|---|---|
+| `inswapper_128.onnx` | InsightFace | Non-commercial / research use only — InsightFace pretrained models are "available for non-commercial research purposes only" |
+| `GFPGANv1.4.pth` | Tencent ARC / NTU S-Lab | [NTU S-Lab License 1.0](https://github.com/TencentARC/GFPGAN/blob/master/LICENSE) — non-commercial academic research only |
+| `buffalo_l` (downloaded automatically by InsightFace at first run) | InsightFace | Non-commercial / research use only |
+
+These restrictions apply regardless of the terms of the Refacer source code license. Refacer's own PolyForm Noncommercial license is intentionally aligned with these upstream constraints.
+
+-----
+
 ## Ethics & Intended Use
 
 Refacer is built specifically for photojournalists, documentary photographers, activists, and researchers who need to protect the identities of vulnerable or at-risk individuals in images.
@@ -197,8 +211,10 @@ It is not intended for any use that obscures identity for deceptive, harmful, or
 
 ## License
 
-[AGPL-3.0](LICENSE)
+[PolyForm Noncommercial License 1.0.0](LICENSE)
 
-Refacer is free and open source software. The AGPL license ensures that any forks or deployments — including hosted versions — must also remain open source. 
+Refacer is free for any non-commercial purpose. You may use, copy, modify, and redistribute it provided you do not use it for commercial purposes and any redistribution carries the same permissions. Commercial use requires a separate agreement with the project maintainers.
+
+This license was chosen to align with the non-commercial restrictions of the upstream model weights Refacer depends on (see [Third-Party Model Notices](#third-party-model-notices) above).
 
 -----
